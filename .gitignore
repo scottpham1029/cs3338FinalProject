@@ -18,7 +18,7 @@ docs/software_design_document/SDD_v*.docx
 
 #ignore all readme except one in root
 **/README.md
-!/readme.md
+!/README.md
 
 #macOS-specific commands to ignore system mng file
 **/.DS_Store
