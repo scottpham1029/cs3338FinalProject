@@ -1,0 +1,24 @@
+#ignore all logs in specified location
+src/logs/*.log
+
+#ignore user_manual
+docs/user_manual/
+
+#match any characters that has - in it
+*-*.txt
+
+#ignore styles.css
+docs/src/styles.css
+
+#ignore all srs versions except final
+docs/software_requirement_specification/SRS_v*.docx
+
+#ignore all sdd versions except final
+docs/software_design_document/SDD_v*.docx
+
+#ignore all readme except one in root
+**/README.md
+!/readme.md
+
+#macOS-specific commands to ignore system mng file
+**/.DS_Store
