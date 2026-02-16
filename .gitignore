@@ -1,19 +1,19 @@
 #ignore all logs in specified location
 src/logs/*.log
 
-#ignore user_manual
+#ignore user_manual located in docs
 docs/user_manual/
 
-#match any characters that has - in it
+#match any characters that has - in it within root
 *-*.txt
 
-#ignore styles.css
-docs/src/styles.css
+#ignore styles.css located in src folders
+src/styles.css
 
-#ignore all srs versions except final
+#ignore all srs versions except final within srs folder
 docs/software_requirement_specification/SRS_v*.docx
 
-#ignore all sdd versions except final
+#ignore all sdd versions except final within sdd folder
 docs/software_design_document/SDD_v*.docx
 
 #ignore all readme except one in root
