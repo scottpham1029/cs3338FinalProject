@@ -1,9 +1,6 @@
 #ignore all logs in specified location
 src/logs/*.log
 
-#ignore user_manual located in docs
-docs/user_manual/
-
 #match any characters that has - in it within root
 *-*.txt
 

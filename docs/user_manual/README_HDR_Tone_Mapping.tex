@@ -1,0 +1,161 @@
+\documentclass[11pt]{article}
+
+% Packages
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{enumitem}
+
+%----------------------------------------------------------------------------------
+
+% Formatting tweaks
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+\setlist[itemize]{leftmargin=1.5em}
+
+\title{User Manual / README\\HDR Imagery Dynamic Tone Mapping: OpenFX Plugin for DaVinci Resolve}
+\author{Group 4}
+\date{May 2026}
+
+\begin{document}
+\maketitle
+
+%----------------------------------------------------------------------------------
+
+\section{Project Overview}
+
+HDR Imagery Dynamic Tone Mapping is a software project focused on the design and development of an OpenFX plugin for DaVinci Resolve. The plugin is intended to help video editors process high dynamic range footage by analyzing luminance data and applying tone mapping adjustments that preserve highlight detail, shadow detail, contrast, and overall image balance.
+
+The plugin is designed to integrate directly into the DaVinci Resolve editing and color correction workflow. Instead of forcing users to rely only on manual color correction, the software provides a structured set of automated and manual controls for converting HDR footage into a more consistent SDR or HDR output target.
+
+%----------------------------------------------------------------------------------
+
+\section{JIRA Link}
+
+The project tasks, sprint planning, progress tracking, and team coordination were managed through Jira. Jira was used to assign responsibilities, organize snapshot objectives, document feature progress, and track possible bugs or areas of weakness that could later be used for TestRail test cases.
+
+\textbf{Link: - placeholder -} 
+
+%----------------------------------------------------------------------------------
+
+\section{Project Objective}
+
+The objective of this project is to design an OpenFX plugin that provides dynamic tone mapping for HDR video footage inside DaVinci Resolve. The plugin is intended to analyze frame or scene brightness, compress high dynamic range values into the selected output range, and maintain a visually natural result without destroying the original source footage.
+
+From a software engineering perspective, the project focuses on defining the plugin architecture, user interface, processing workflow, requirements, testing strategy, and development environment. The documentation in this repository explains how the system is expected to operate, how users would interact with it, and how the project would be managed through GitHub, Jira, Docker, TestRail, and LaTeX documentation.
+
+%----------------------------------------------------------------------------------
+
+\section{Why This Software Matters}
+
+HDR footage can contain brightness and color information that exceeds what many displays can accurately reproduce. If this footage is not tone mapped correctly, the final image may contain clipped highlights, crushed shadows, washed-out colors, or inconsistent brightness between scenes.
+
+This project addresses that issue by providing a more efficient HDR correction workflow for editors and colorists. A dynamic tone mapping plugin can reduce repetitive manual adjustments, improve visual consistency, and help users prepare footage for different display targets such as SDR, HDR10, or custom brightness ranges.
+
+%----------------------------------------------------------------------------------
+
+\section{Features}
+
+The following features describe the intended functionality of the HDR Imagery Dynamic Tone Mapping plugin:
+
+\begin{itemize}
+    \item Dynamic tone mapping that adjusts image brightness and contrast based on frame or scene luminance data.
+    \item HDR luminance analysis for identifying peak highlights, shadow regions, midtone distribution, and overall exposure behavior.
+    \item Output target selection for common display workflows such as SDR, HDR10, and custom brightness targets.
+    \item Manual image adjustment controls including exposure, contrast, highlight roll-off, shadow recovery, saturation protection, and peak brightness.
+    \item Preset modes such as Natural, Cinematic, Broadcast Safe, High Contrast, and Custom.
+    \item Before-and-after preview modes that allow users to compare the original HDR input with the processed output.
+    \item Non-destructive processing that preserves the original source footage while applying changes through the plugin pipeline.
+    \item Error handling for unsupported color spaces, missing HDR metadata, invalid preset configurations, or processing failures.
+\end{itemize}
+
+These features are designed to support both beginner users who want quick preset-based adjustments and advanced users who need more control over the tone mapping process.
+
+%----------------------------------------------------------------------------------
+
+\section{User Workflow}
+
+The expected user workflow begins inside DaVinci Resolve. The user imports HDR footage into a project, applies the HDR Imagery Dynamic Tone Mapping OpenFX plugin to a clip, and selects the desired output target. The user may then choose a preset or manually adjust the tone mapping controls based on the visual needs of the footage.
+
+After the plugin settings are selected, the system analyzes luminance data from the frame or scene and applies the appropriate tone mapping curve. The processed result is returned to DaVinci Resolve for preview. The user can compare the original and processed footage using the preview controls before exporting the final corrected video.
+
+%----------------------------------------------------------------------------------
+
+\section{How to Access or Use the Project}
+
+This repository contains the project documentation, planning artifacts, testing materials, and development environment specifications for the HDR Imagery Dynamic Tone Mapping plugin. The project is organized as a software engineering deliverable and includes the documents required to describe the system design, requirements, testing process, user manual, workflow, and project snapshots.
+
+To access the project materials, users should clone or download the GitHub repository and review the documentation folders. The primary documents include the Software Requirements Specification, Software Design Document, Design Specification, Snapshot Objectives, TestRail reports, workflow diagram, Docker configuration, and README/User Manual.
+
+\begin{verbatim}
+git clone https://github.com/scottpham1029/cs3338FinalProject.git
+cd cs3338FinalProject
+\end{verbatim}
+
+The OpenFX plugin itself is represented through design and planning documentation. The Docker configuration describes the expected development and documentation services, while the LaTeX files provide the formal project documents used for submission.
+
+%----------------------------------------------------------------------------------
+
+\section{Repository Structure}
+
+The repository is organized to separate documentation, testing materials, workflow diagrams, Jira planning notes, and development environment files.
+
+\begin{verbatim}
+final_project/
+|-- README.md
+|-- docker-compose.yml
+|-- docs/
+|   |-- Software_Design_Document/
+|   |-- Software_Requirement_Specification/
+|   |-- Design_Specification/
+|   |-- User_Manual/
+|   |-- Snapshot_Objectives/
+|   |-- TestRail_Documents/
+|   |-- Workflow_Diagram/
+|-- jira/
+|-- mock_plugin/
+\end{verbatim}
+
+Each folder supports a specific part of the software engineering workflow. The documentation folders describe the product requirements and architecture, the TestRail folder contains quality assurance materials, the Jira folder documents sprint planning, and the Docker file outlines the expected development environment.
+
+%----------------------------------------------------------------------------------
+
+\section{Tools Used}
+
+The project uses the following tools as part of the software engineering workflow:
+
+\begin{itemize}
+    \item \textbf{GitHub:} Stores project documentation, version history, branches, commits, and pull requests.
+    \item \textbf{Jira:} Tracks sprint tasks, team responsibilities, feature progress, and potential bugs.
+    \item \textbf{Docker:} Defines the expected services for plugin development, LaTeX documentation building, and mock testing environments.
+    \item \textbf{TestRail:} Organizes test cases and test run summaries for project snapshots.
+    \item \textbf{LaTeX:} Produces formal project documents such as the SRS, SDD, Design Specification, User Manual, and Snapshot Objectives.
+    \item \textbf{DaVinci Resolve:} Serves as the target host application for the planned OpenFX plugin.
+    \item \textbf{OpenFX:} Provides the plugin framework used to connect the effect to compatible video editing and compositing software.
+\end{itemize}
+
+%----------------------------------------------------------------------------------
+
+\section{Snapshot Roadmap}
+
+The project is divided into four snapshots to show the progression of the software design and planning process.
+
+\begin{itemize}
+    \item \textbf{Snapshot 1:} Establish the base project scope, architecture, documentation structure, workflow diagram, team responsibilities, and initial plugin feature plan.
+    \item \textbf{Snapshot 2:} Add dynamic luminance analysis and automatic tone mapping requirements, then update the SRS, SDD, design specification, user manual, workflow, Jira tasks, and TestRail cases.
+    \item \textbf{Snapshot 3:} Add preset modes, manual controls, and preview comparison features, then update all affected documentation and testing materials.
+    \item \textbf{Snapshot 4:} Finalize documentation, complete testing summaries, document project limitations, and describe future work such as GPU acceleration, histogram tools, and advanced HDR metadata support.
+\end{itemize}
+
+%----------------------------------------------------------------------------------
+
+\section{Limitations and Future Work}
+
+The current project focuses on the planned design and documentation of the HDR tone mapping plugin. Future work would include implementing the actual OpenFX plugin code, validating the tone mapping algorithm against real HDR footage, and testing performance inside DaVinci Resolve.
+
+Additional future improvements may include GPU acceleration, real-time histogram displays, Dolby Vision metadata support, batch processing, machine learning-based tone mapping, and advanced color space conversion options.
+
+%----------------------------------------------------------------------------------
+
+\end{document}
