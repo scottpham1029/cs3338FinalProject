@@ -1,0 +1,386 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{hyperref}
+\usepackage[hyphens]{url}
+\usepackage{array}
+\usepackage{longtable}
+
+%----------------------------------------------------------------------------------
+
+\geometry{a4paper, margin=1in}
+\Urlmuskip=0mu plus 1mu
+
+\title{HDR Imagery Dynamic Tone Mapping \\ OpenFX Plugin for DaVinci Resolve \\ Software Requirement Specification}
+\author{Group 4}
+\date{May 2026}
+
+\setlength{\droptitle}{4cm}
+
+\pagestyle{fancy}
+\fancyhead[L]{HDR Dynamic Tone Mapping SRS}
+\fancyhead[C]{}
+\fancyhead[R]{Page \thepage}
+\renewcommand{\UrlFont}{\ttfamily\underline}
+
+%----------------------------------------------------------------------------------
+
+\begin{document}
+
+\begin{titlepage}
+\maketitle
+\thispagestyle{empty}
+\vfill
+\begin{center}
+\textbf{Project Platform:} DaVinci Resolve / OpenFX Plugin Framework\\
+\textbf{Document Type:} Software Requirement Specification\\
+\textbf{Status:} Project Planning and Requirements Definition
+\end{center}
+\end{titlepage}
+
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+
+%----------------------------------------------------------------------------------
+
+\section*{Version History}
+\addcontentsline{toc}{section}{Version History}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|c|p{8cm}|c|}
+    \hline
+    \textbf{Date} & \textbf{Description} & \textbf{Version} \\
+    \hline
+    02/04/2026 & Initial SRS defining project scope, intended users, interface requirements, and baseline HDR tone mapping requirements. & 1.0 \\
+    \hline
+    03/06/2026 & Updated requirements for dynamic luminance analysis, automatic tone mapping behavior, and processing pipeline expectations. & 2.0 \\
+    \hline
+    04/08/2026 & Added preset requirements, preview comparison requirements, and additional user interface requirements. & 3.0 \\
+    \hline
+    05/10/2026 & Finalized legal, ethical, testing, performance, and future-work requirements for final project submission. & 4.0 \\
+    \hline
+\end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------------------
+
+\section{Introduction}
+
+\subsection{Purpose}
+The purpose of this Software Requirement Specification (SRS) is to define the functional and non-functional requirements for the HDR Imagery Dynamic Tone Mapping OpenFX Plugin for DaVinci Resolve. This document establishes what the software is expected to do, how users will interact with it, what external systems it depends on, and what constraints must be considered during development.
+
+The plugin is intended to provide video editors and colorists with an integrated HDR tone mapping workflow inside DaVinci Resolve. The system will analyze HDR image data, preserve important highlight and shadow details, and generate a visually balanced output for SDR or HDR display targets.
+
+\subsection{Intended Audience}
+This document is intended for software developers, project managers, quality assurance testers, technical writers, instructors, and project reviewers. Developers will use the SRS to understand system behavior and feature expectations. Testers will use it to create TestRail test cases and verify that each requirement is satisfied. Project reviewers will use the document to evaluate whether the system scope is clearly defined and technically realistic.
+
+\subsection{Overview of the Software}
+The HDR Imagery Dynamic Tone Mapping system is designed as an OpenFX plugin that runs inside DaVinci Resolve. A user applies the plugin to HDR footage, selects an output target, chooses a tone mapping preset or custom settings, and previews the processed result before export.
+
+The plugin will support dynamic tone mapping based on frame or scene luminance analysis. It will include controls for exposure, highlight roll-off, shadow recovery, contrast, saturation protection, and output target brightness. The system will also include preset modes and preview comparison features to support both beginner and advanced video editing workflows.
+
+\subsection{Product Scope}
+The scope of the project is limited to the design and specification of an OpenFX-based HDR tone mapping plugin for DaVinci Resolve. The software is intended to improve HDR-to-SDR and HDR-to-HDR conversion workflows by reducing manual correction time and providing consistent tone mapping behavior across video clips.
+
+The system will not replace DaVinci Resolve's full color grading toolset. Instead, it will function as a specialized plugin that assists with tone mapping and previewing HDR footage. The original video source will remain unchanged, and all processing will be applied as a non-destructive effect within the editing environment.
+
+%----------------------------------------------------------------------------------
+
+\section{Overall Description}
+
+\subsection{Product Perspective}
+The plugin operates as part of DaVinci Resolve's video editing and color correction environment. DaVinci Resolve acts as the host application, while the OpenFX framework allows the plugin to receive frames, expose user-adjustable parameters, process image data, and return output frames to the host application.
+
+\subsection{Product Functions}
+At a high level, the system will provide the following functions:
+
+\begin{itemize}
+    \item Accept HDR video frame data from DaVinci Resolve through the OpenFX plugin interface.
+    \item Analyze frame or scene luminance values to determine brightness distribution.
+    \item Apply dynamic tone mapping to compress HDR brightness values into a selected output range.
+    \item Preserve highlight and shadow detail during HDR-to-SDR or HDR-to-HDR conversion.
+    \item Provide manual controls for exposure, contrast, highlight roll-off, shadow recovery, and saturation protection.
+    \item Provide preset modes for common editing workflows.
+    \item Provide preview comparison modes such as full preview, split view, and side-by-side comparison.
+    \item Return the processed frame to DaVinci Resolve for preview and export.
+\end{itemize}
+
+\subsection{User Classes and Characteristics}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{4cm}|p{11cm}|}
+\hline
+\textbf{User Class} & \textbf{Description} \\
+\hline
+Video Editor & A user who edits video footage and needs a simple method for making HDR content viewable on SDR or HDR displays. \\
+\hline
+Colorist & An advanced user who adjusts color, exposure, contrast, and tone mapping settings for professional post-production workflows. \\
+\hline
+Content Creator & A user who works with HDR footage from cameras, phones, or screen recordings and needs export-ready visual output. \\
+\hline
+QA Tester & A project team member responsible for validating plugin requirements, test cases, preview behavior, and error handling. \\
+\hline
+Developer & A technical team member responsible for designing the plugin architecture, image-processing pipeline, and OpenFX integration. \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Assumptions and Dependencies}
+The system assumes that DaVinci Resolve is installed and supports OpenFX plugin integration. The system also assumes that input footage may contain HDR color information, HDR metadata, or luminance values that can be analyzed by the plugin. If HDR metadata is unavailable, the plugin should estimate brightness characteristics from the frame data.
+
+The project depends on the OpenFX plugin framework, DaVinci Resolve as the host application, GitHub for version control, Jira for task management, TestRail for testing documentation, Docker for environment planning, and LaTeX for formal documentation.
+
+%----------------------------------------------------------------------------------
+
+\section{Specific Requirements}
+
+\subsection{Functional Requirements}
+
+\begin{longtable}{|p{2.2cm}|p{12.5cm}|}
+\hline
+\textbf{ID} & \textbf{Requirement} \\
+\hline
+FR-1 & The system shall operate as an OpenFX plugin that can be applied to a video clip inside DaVinci Resolve. \\
+\hline
+FR-2 & The system shall receive video frame data from the DaVinci Resolve host application. \\
+\hline
+FR-3 & The system shall support HDR input footage and process high dynamic range luminance values. \\
+\hline
+FR-4 & The system shall allow the user to select an output target such as SDR, HDR10, or Custom. \\
+\hline
+FR-5 & The system shall analyze frame or scene luminance to identify highlight, midtone, and shadow regions. \\
+\hline
+FR-6 & The system shall apply dynamic tone mapping based on luminance analysis and selected user settings. \\
+\hline
+FR-7 & The system shall provide an option to enable or disable automatic tone mapping. \\
+\hline
+FR-8 & The system shall provide manual adjustment controls for exposure, highlight roll-off, shadow recovery, contrast, and saturation protection. \\
+\hline
+FR-9 & The system shall provide preset modes including Natural, Cinematic, Broadcast Safe, and Custom. \\
+\hline
+FR-10 & The system shall allow users to preview the processed output before export. \\
+\hline
+FR-11 & The system shall provide comparison modes including full preview, split view, and side-by-side preview. \\
+\hline
+FR-12 & The system shall preserve the original source footage and apply all changes non-destructively. \\
+\hline
+FR-13 & The system shall return the processed frame to DaVinci Resolve for playback, preview, and export. \\
+\hline
+FR-14 & The system shall display an error or warning message when unsupported input data is detected. \\
+\hline
+FR-15 & The system shall provide a reset option that restores all plugin parameters to default values. \\
+\hline
+\end{longtable}
+
+\subsection{Non-Functional Requirements}
+
+\begin{longtable}{|p{2.2cm}|p{12.5cm}|}
+\hline
+\textbf{ID} & \textbf{Requirement} \\
+\hline
+NFR-1 & The system should process preview frames with minimal delay to support an efficient editing workflow. \\
+\hline
+NFR-2 & The user interface should be organized clearly so that beginner users can apply presets while advanced users can access manual controls. \\
+\hline
+NFR-3 & The system should maintain visual consistency when applying the same preset to similar footage. \\
+\hline
+NFR-4 & The system should avoid destructive editing and must not overwrite the original media file. \\
+\hline
+NFR-5 & The system should provide clear warnings for unsupported formats, missing HDR metadata, or invalid parameter combinations. \\
+\hline
+NFR-6 & The system should be maintainable, with separate modules for input handling, luminance analysis, tone mapping, presets, and preview rendering. \\
+\hline
+NFR-7 & The system should be designed with future support for GPU acceleration, additional color spaces, and advanced metadata workflows. \\
+\hline
+\end{longtable}
+
+%----------------------------------------------------------------------------------
+
+\section{External Interface Requirements}
+
+\subsection{User Interface}
+The system will provide a plugin parameter panel inside DaVinci Resolve. The interface will include grouped controls for input configuration, output target selection, dynamic tone mapping, manual adjustments, presets, and preview mode.
+
+The primary user interface controls include:
+
+\begin{itemize}
+    \item Dynamic Tone Mapping: On/Off
+    \item Input Color Space: Rec.709, Rec.2020, P3-D65, or Auto Detect
+    \item Output Target: SDR, HDR10, or Custom
+    \item Peak Brightness Target: 100 nits, 400 nits, 1000 nits, or Custom
+    \item Exposure Adjustment Slider
+    \item Highlight Roll-Off Slider
+    \item Shadow Recovery Slider
+    \item Contrast Slider
+    \item Saturation Protection Slider
+    \item Preset Dropdown: Natural, Cinematic, Broadcast Safe, Custom
+    \item Preview Mode: Full, Split View, Side-by-Side
+    \item Reset Settings Button
+\end{itemize}
+
+\subsection{Software Interfaces}
+The system will interface with DaVinci Resolve through the OpenFX plugin framework. DaVinci Resolve will provide input frames and plugin parameter values, while the plugin will return processed output frames to the host application.
+
+The software will also rely on project management and development tools. GitHub will store documents, source planning materials, and version history. Jira will be used for sprint planning and task assignment. TestRail will be used to document test cases, test runs, and snapshot testing results. Docker will be used to describe the expected development and documentation environment.
+
+\subsection{Hardware Interfaces}
+The plugin is designed to run on workstations capable of running DaVinci Resolve. The system may benefit from GPU acceleration in future versions, but the current requirements focus on the expected software behavior rather than hardware-specific implementation.
+
+\subsection{Communication Interfaces}
+The plugin is intended to process footage locally within DaVinci Resolve. It does not require a network connection to perform tone mapping. Communication between the plugin and the host application occurs through the OpenFX interface.
+
+%----------------------------------------------------------------------------------
+
+\section{System Features}
+
+\subsection{Dynamic Luminance Analysis}
+The system shall evaluate the brightness distribution of each frame or scene. This analysis will be used to determine how aggressively highlights should be compressed and how shadows should be preserved. The feature is intended to improve visual consistency across footage with changing brightness conditions.
+
+\subsection{Tone Mapping Engine}
+The tone mapping engine shall convert HDR brightness values into a selected target range. The system should preserve details in bright and dark areas while avoiding clipped highlights and crushed shadows. The tone mapping behavior will depend on both the automatic analysis and the user's selected settings.
+
+\subsection{Preset Management}
+The system shall include preset modes that apply predefined combinations of tone mapping settings. Presets are intended to simplify the workflow for users who do not want to manually adjust every parameter.
+
+\subsection{Preview Comparison}
+The system shall allow users to compare the original HDR image and the processed output. This requirement supports decision-making during color correction and gives users a clearer understanding of how the plugin affects the footage.
+
+\subsection{Error Handling}
+The system shall provide clear feedback when an issue occurs. Examples include unsupported input formats, missing HDR metadata, invalid output targets, or internal processing failures. When possible, the plugin should return the original frame instead of producing a corrupted output.
+
+%----------------------------------------------------------------------------------
+
+\section{Legal and Ethical Considerations}
+
+\subsection{Data Storage and Privacy Considerations}
+The plugin is intended to process video frames locally within the user's DaVinci Resolve environment. It should not upload footage, metadata, project files, or user settings to external servers. This reduces privacy risks and protects sensitive client footage, personal recordings, commercial projects, and unpublished media.
+
+The system should not collect personal identifiers or user analytics unless clearly documented and approved by the user. Any exported settings or presets should be stored locally and should not include private user data.
+
+\subsection{Legal and Ethical Issues}
+The system must respect copyright and ownership of video footage. The plugin should not claim ownership of user-created media or modify original files without user action. All processing should be non-destructive and transparent to the user.
+
+Ethical considerations include avoiding misleading image transformations, clearly communicating when automatic processing is applied, and ensuring users understand that tone mapping changes the visual appearance of footage. The system should support accurate previewing so that users can make informed creative and technical decisions.
+
+\subsection{Accessibility Considerations}
+The plugin interface should use clear labels, predictable control grouping, and readable parameter names. Presets should be named in a way that communicates their purpose. The interface should be usable by both experienced colorists and users with limited HDR workflow knowledge.
+
+%----------------------------------------------------------------------------------
+
+\section{Testing Requirements}
+
+\subsection{Test Categories}
+The system shall be tested through TestRail test cases that verify functional behavior, user interface behavior, preview accuracy, and error handling. The main test categories include:
+
+\begin{itemize}
+    \item Input compatibility testing
+    \item Luminance analysis testing
+    \item Tone mapping behavior testing
+    \item Preset selection testing
+    \item Manual control testing
+    \item Preview comparison testing
+    \item Error handling testing
+    \item Export workflow testing
+\end{itemize}
+
+\subsection{Sample Test Requirements}
+\begin{longtable}{|p{2.2cm}|p{12.5cm}|}
+\hline
+\textbf{ID} & \textbf{Test Requirement} \\
+\hline
+TR-1 & Verify that the plugin can be selected and applied to a clip inside DaVinci Resolve. \\
+\hline
+TR-2 & Verify that the Dynamic Tone Mapping toggle can be enabled and disabled. \\
+\hline
+TR-3 & Verify that selecting each preset updates the plugin parameters. \\
+\hline
+TR-4 & Verify that the preview mode displays the processed output. \\
+\hline
+TR-5 & Verify that split-view preview shows a comparison between the original and processed image. \\
+\hline
+TR-6 & Verify that unsupported input data produces a readable warning message. \\
+\hline
+TR-7 & Verify that the Reset Settings button restores default parameter values. \\
+\hline
+\end{longtable}
+
+%----------------------------------------------------------------------------------
+
+\section*{Glossary}
+\addcontentsline{toc}{section}{Glossary}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|c|p{10cm}|}
+\hline
+\textbf{Acronym / Term} & \textbf{Definition} \\
+\hline
+SRS & Software Requirement Specification \\
+\hline
+UI & User Interface \\
+\hline
+HDR & High Dynamic Range; video or image content with a wider range of brightness and color information than standard dynamic range content. \\
+\hline
+SDR & Standard Dynamic Range; traditional display range used by many monitors and video formats. \\
+\hline
+OpenFX & Open Effects plugin framework used by visual effects and video editing host applications. \\
+\hline
+DaVinci Resolve & Video editing, color correction, visual effects, and post-production software by Blackmagic Design. \\
+\hline
+Tone Mapping & The process of converting high dynamic range brightness values into a smaller display range while preserving visual detail. \\
+\hline
+Luminance & The measured brightness of an image, frame, or pixel region. \\
+\hline
+Nits & A unit used to describe display brightness. \\
+\hline
+LUT & Look-Up Table; a table used to transform color or brightness values. \\
+\hline
+Rec.709 & A common color space and standard used for SDR video. \\
+\hline
+Rec.2020 & A wide color space commonly associated with HDR video workflows. \\
+\hline
+\end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------------------
+
+\section*{References}
+\addcontentsline{toc}{section}{References}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|p{6cm}|p{11cm}|}
+\hline
+\textbf{Reference Name} & \textbf{Source} \\
+\hline
+Software Requirement Specification Template & CSULA / CS3338 Course Materials \\
+\hline
+OpenFX Documentation & \url{https://openeffects.org/} \\
+\hline
+DaVinci Resolve Product Information & \url{https://www.blackmagicdesign.com/products/davinciresolve} \\
+\hline
+Blackmagic Design Support Documentation & \url{https://www.blackmagicdesign.com/support/} \\
+\hline
+HDR Video Workflow Reference & \url{https://www.itu.int/rec/R-REC-BT.2100} \\
+\hline
+GitHub Documentation & \url{https://docs.github.com/} \\
+\hline
+Jira Documentation & \url{https://support.atlassian.com/jira-software-cloud/} \\
+\hline
+TestRail Documentation & \url{https://support.testrail.com/} \\
+\hline
+Docker Compose Documentation & \url{https://docs.docker.com/compose/} \\
+\hline
+\end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------------------
+
+\end{document}

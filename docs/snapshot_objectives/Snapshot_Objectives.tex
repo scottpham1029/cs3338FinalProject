@@ -1,0 +1,64 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{fancyhdr}
+\setlength{\headheight}{14.5pt}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{hyperref}
+
+
+%----------------------------------------------------------------------------------
+
+\geometry{a4paper, margin=1in}
+\Urlmuskip=0mu plus 1mu
+
+\title{HDR Imagery Dynamic Tone Mapping: OpenFX Plugin for DaVinci Resolve \\ Snapshot Objectives}
+\author{Group 4}
+\date{May 2026}
+
+\setlength{\droptitle}{6cm}
+
+\pagestyle{fancy}
+\fancyhead[L]{Snapshot Objectives}
+\fancyhead[C]{}
+\fancyhead[R]{Page \thepage}
+
+%----------------------------------------------------------------------------------
+
+\begin{document}
+
+\begin{titlepage}
+\maketitle
+\thispagestyle{empty}
+\end{titlepage}
+
+%----------------------------------------------------------------------------------
+
+\section*{Start Objective}
+
+The starting objective of the HDR Imagery Dynamic Tone Mapping OpenFX Plugin is to establish the core project scope, technical architecture, and documentation foundation for a professional video-processing plugin designed for DaVinci Resolve. The initial phase will define how the plugin integrates with the OpenFX framework, how DaVinci Resolve provides frame data to the plugin, and how the plugin returns a tone-mapped output frame for preview and export. This snapshot will also establish the baseline system requirements, user interface layout, expected input and output formats, and the initial processing workflow for HDR-to-SDR and HDR-to-HDR tone mapping.
+
+During this phase, the team will create the initial Software Requirements Specification, Software Design Document, Design Specification, User Manual, and repository structure. The Docker environment will be documented as a mock development setup for C++ plugin development, LaTeX documentation generation, and test execution. Jira tasks will be created for the first sprint to divide responsibilities across architecture planning, documentation, workflow design, and testing preparation. The goal of this snapshot is to create a complete project foundation that clearly explains what the plugin is intended to do and how the team plans to build and manage it.
+
+\section*{1st Checkpoint Objective}
+
+The primary objective for Snapshot 2 is to expand the plugin design by adding dynamic luminance analysis and automatic tone mapping behavior. This checkpoint focuses on defining the modules responsible for analyzing HDR frame brightness, identifying peak highlights, measuring shadow regions, and determining how the tone mapping engine should compress high dynamic range values into a selected display target. The feature will be documented as a core processing capability that allows the plugin to make automatic adjustments based on frame or scene luminance data.
+
+This checkpoint will update the SRS, SDD, Design Specification, User Manual, and workflow diagram to reflect the new luminance analysis feature. New Jira tasks will be created for the luminance analysis module, tone mapping curve behavior, parameter design, and error handling for unsupported or missing HDR metadata. TestRail test cases will also be added to verify that the plugin can accept HDR input, enable or disable dynamic tone mapping, apply automatic brightness adjustments, and preserve highlight and shadow detail. The goal of this snapshot is to demonstrate measurable progress from basic project planning toward a defined image-processing pipeline.
+
+\section*{2nd Checkpoint Objective}
+
+The primary objective for Snapshot 3 is to add user-facing controls, preset management, and preview comparison modes to the plugin design. This checkpoint focuses on improving usability by allowing editors to choose between preset tone mapping styles such as Natural, Cinematic, Broadcast Safe, and Custom. It will also define manual adjustment controls for exposure, highlight roll-off, shadow recovery, contrast, saturation protection, and output display targeting. These controls are intended to give users both automated correction options and fine-grained creative control over the final image.
+
+This snapshot will also introduce preview comparison features such as before-and-after view, split-screen comparison, and side-by-side preview. The documentation will be updated to describe how parameter changes affect the tone mapping engine and how the plugin communicates processed frames back to DaVinci Resolve for review. Additional TestRail cases will verify preset selection, slider behavior, preview mode functionality, and expected user interface responses. The goal of this checkpoint is to move the project from a backend processing design into a more complete editor-facing workflow that matches real post-production use cases.
+
+\section*{Due Date Checkpoint}
+
+The primary objective of Snapshot 4, or the Due Date checkpoint, is to finalize the HDR Imagery Dynamic Tone Mapping project documentation and complete the remaining project artifacts. This phase will focus on reviewing and polishing the SRS, SDD, Design Specification, User Manual, Docker configuration, Jira documentation, TestRail reports, and workflow diagram. The final version of the project should present a complete software engineering plan for an OpenFX plugin that integrates with DaVinci Resolve and supports HDR tone mapping through automated analysis, user presets, manual controls, and preview comparison tools.
+
+This checkpoint will also include a reflection on completed work, remaining limitations, and future development opportunities. Future work may include GPU acceleration through CUDA, Metal, or OpenCL, real-time waveform and histogram displays, Dolby Vision or HDR10 metadata support, batch processing, improved color space conversion, and machine learning-assisted tone mapping. The final snapshot will demonstrate how the project evolved across each checkpoint and how the team used GitHub, Jira, Docker, TestRail, and LaTeX to manage the software engineering process. The goal of this final checkpoint is to deliver a professional, organized, and technically realistic project package ready for submission.
+
+%----------------------------------------------------------------------------------
+
+\end{document}

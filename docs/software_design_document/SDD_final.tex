@@ -1,0 +1,436 @@
+\documentclass[12pt,hyphens]{article}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{hyperref}
+\usepackage[hyphens]{url}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+
+%----------------------------------------------------------------------------------
+
+\geometry{a4paper, margin=1in}
+\Urlmuskip=0mu plus 1mu
+
+\title{HDR Imagery Dynamic Tone Mapping \\ OpenFX Plugin for DaVinci Resolve \\ Software Design Document}
+\author{Group 4}
+\date{May 2026}
+
+\setlength{\droptitle}{4cm}
+\setlength{\headheight}{14.5pt}
+\pagestyle{fancy}
+\fancyhead[L]{HDR Dynamic Tone Mapping SDD}
+\fancyhead[C]{}
+\fancyhead[R]{Page \thepage}
+
+\renewcommand{\UrlFont}{\ttfamily\underline}
+
+%----------------------------------------------------------------------------------
+
+\begin{document}
+
+\begin{titlepage}
+\maketitle
+\thispagestyle{empty}
+\vfill
+\begin{center}
+\textbf{Project Platform:} DaVinci Resolve / OpenFX Plugin Framework\\
+\textbf{Document Type:} Software Design Document\\
+\textbf{Repository:} CS3338 Final Project
+\end{center}
+\end{titlepage}
+
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+
+%----------------------------------------------------------------------------------
+
+\section*{Version History}
+\addcontentsline{toc}{section}{Version History}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|c|p{9cm}|c|}
+    \hline
+    \textbf{Date} & \textbf{Description} & \textbf{Version} \\
+    \hline
+    02/04/2026 & Initial design document created for Snapshot 1. Defined base OpenFX plugin architecture, project scope, and planned HDR tone mapping workflow. & 1.0 \\
+    \hline
+    03/06/2026 & Updated for Snapshot 2. Added dynamic luminance analysis, automatic tone mapping behavior, and expanded processing pipeline details. & 2.0 \\
+    \hline
+    04/08/2026 & Updated for Snapshot 3. Added preset management, preview comparison modes, and expanded user interface controls. & 3.0 \\
+    \hline
+    05/10/2026 & Updated for Snapshot 4. Added final design revisions, testing considerations, limitations, and future work. & 4.0 \\
+    \hline
+\end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------------------
+
+\section{Introduction}
+
+\subsection{Purpose}
+The purpose of this Software Design Document is to describe the architecture, major components, workflow, and user interface design for \textit{HDR Imagery Dynamic Tone Mapping}, an OpenFX plugin designed for DaVinci Resolve. The plugin is intended to assist editors and colorists with converting high dynamic range footage into a visually balanced output for SDR and HDR display targets.
+
+This document explains how the proposed software is structured, how its modules interact, and how image data flows through the system. It also describes the user-facing controls, internal processing pipeline, expected dependencies, and design decisions used to support dynamic tone mapping inside a professional video editing workflow.
+
+\subsection{Intended Audience}
+This document is intended for software developers, project managers, quality assurance testers, technical reviewers, and team members involved in the design and planning of the project. Developers can use this document to understand the system architecture and planned module responsibilities. Testers can use it to identify areas that require validation through TestRail test cases. Project managers can use it to verify that the technical design supports the project objectives and snapshot milestones.
+
+\subsection{Overview of the System}
+\textit{HDR Imagery Dynamic Tone Mapping} is designed as an OpenFX plugin that operates inside DaVinci Resolve. The user applies the plugin to an HDR video clip, selects an output target, and adjusts tone mapping parameters using the plugin panel. The plugin receives image frames from DaVinci Resolve, analyzes frame luminance, applies tone mapping operations, and returns the processed frame to the host application for preview and export.
+
+At a high level, the system provides the following capabilities:
+
+\begin{itemize}[leftmargin=0.35in]
+    \item Accept HDR image frames from DaVinci Resolve through the OpenFX host interface.
+    \item Analyze frame or scene luminance to detect highlights, shadows, midtones, and exposure range.
+    \item Apply dynamic tone mapping to compress HDR brightness values into a target display range.
+    \item Provide manual controls for exposure, highlight roll-off, shadow recovery, contrast, saturation protection, and output target selection.
+    \item Provide preset modes such as Natural, Cinematic, Broadcast Safe, and Custom.
+    \item Provide preview comparison modes so users can compare the original HDR input with the tone-mapped output.
+    \item Preserve the original source footage by applying processing non-destructively through the host application's plugin workflow.
+\end{itemize}
+
+%----------------------------------------------------------------------------------
+
+\section{System Architecture}
+
+\subsection{Workflow of the System}
+The system is designed around a host-plugin workflow. DaVinci Resolve acts as the host application, while the HDR tone mapping plugin provides additional image processing functionality through the OpenFX plugin interface. The plugin does not manage a standalone database or independent user account system. Instead, it operates locally on video frames provided by the host application.
+
+\begin{figure}[H]
+\centering
+\fbox{%
+\begin{minipage}{0.85\linewidth}
+\centering
+DaVinci Resolve Host Application\\
+$\downarrow$\\
+OpenFX Plugin Interface\\
+$\downarrow$\\
+Frame Input Handler\\
+$\downarrow$\\
+HDR Metadata and Luminance Analyzer\\
+$\downarrow$\\
+Tone Mapping Engine\\
+$\downarrow$\\
+Preset and Parameter Manager\\
+$\downarrow$\\
+Preview Renderer\\
+$\downarrow$\\
+Processed Output Frame Returned to DaVinci Resolve
+\end{minipage}}
+\caption{High-level workflow for the HDR Dynamic Tone Mapping plugin.}
+\end{figure}
+
+\subsection{System Breakdown}
+The proposed system is organized into several major modules. Each module is responsible for a specific part of the video processing workflow.
+
+\begin{longtable}{|p{4cm}|p{5.5cm}|p{5.5cm}|}
+\hline
+\textbf{Module} & \textbf{Responsibility} & \textbf{Primary Output} \\
+\hline
+OpenFX Interface Module & Handles communication between DaVinci Resolve and the plugin. Registers plugin parameters and receives frame requests from the host. & Frame data and user parameter values \\
+\hline
+Frame Input Handler & Receives source image frames from the host application and prepares them for analysis and processing. & Prepared HDR frame buffer \\
+\hline
+HDR Metadata Reader & Checks available HDR metadata, color space information, and display target values when available. & Metadata values or fallback defaults \\
+\hline
+Luminance Analysis Module & Calculates brightness distribution, peak highlights, shadow regions, and average frame luminance. & Luminance statistics \\
+\hline
+Tone Mapping Engine & Applies the tone mapping curve and image transformation based on luminance analysis and user settings. & Tone-mapped image frame \\
+\hline
+Preset Manager & Loads predefined tone mapping configurations and maps user preset selections to parameter values. & Preset-based configuration values \\
+\hline
+Preview Renderer & Sends the processed image back to DaVinci Resolve and supports preview comparison behavior. & Final preview/output frame \\
+\hline
+\end{longtable}
+
+\subsection{OpenFX Interface Module}
+
+\subsubsection{Responsibilities}
+The OpenFX Interface Module manages the connection between DaVinci Resolve and the plugin. Its responsibilities include registering plugin parameters, receiving frame requests, handling render calls, and returning processed frames to the host application. This module allows the plugin to behave as a native effect inside DaVinci Resolve's editing and color correction workflow.
+
+\subsubsection{Composition}
+The OpenFX Interface Module would be composed of plugin entry points, parameter definitions, render callbacks, and host communication logic. In a full implementation, this module would likely be written in C++ because image-processing plugins typically require efficient memory handling and low-level performance control.
+
+\subsection{Frame Input Handler}
+
+\subsubsection{Responsibilities}
+The Frame Input Handler receives HDR image data from DaVinci Resolve and prepares it for analysis. It ensures that frame data is available in the expected format before passing it to the luminance analysis and tone mapping modules. This component also helps prevent destructive editing by treating the original frame as read-only input.
+
+\subsubsection{Uses and Interactions}
+The Frame Input Handler receives frame buffers from the OpenFX Interface Module. It then forwards prepared image data to the HDR Metadata Reader and Luminance Analysis Module. If the input frame is unsupported or incomplete, this module triggers an error-handling response and returns a safe fallback frame.
+
+\subsection{HDR Metadata Reader}
+
+\subsubsection{Responsibilities}
+The HDR Metadata Reader checks whether the input footage contains useful HDR information such as color space, transfer function, peak brightness, and display target metadata. When valid metadata is available, the plugin can use it to make more accurate tone mapping decisions. When metadata is missing, the system uses estimated luminance values and default output settings.
+
+\subsubsection{Composition}
+This module is designed as a lightweight validation and extraction component. It does not permanently store metadata. Instead, it reads metadata during the processing workflow and passes relevant values to the Tone Mapping Engine.
+
+\subsection{Luminance Analysis Module}
+
+\subsubsection{Responsibilities}
+The Luminance Analysis Module examines the brightness distribution of each frame or scene. It detects peak highlights, shadow density, average luminance, and midtone distribution. These values are used to determine how aggressively the plugin should compress highlights or recover shadow detail.
+
+\subsubsection{Uses and Interactions}
+The Luminance Analysis Module receives prepared frame data from the Frame Input Handler. It produces luminance statistics that are passed to the Tone Mapping Engine. In later snapshots, this module supports dynamic tone mapping by adjusting output behavior according to changing brightness conditions across a scene.
+
+\subsection{Tone Mapping Engine}
+
+\subsubsection{Responsibilities}
+The Tone Mapping Engine is the main processing component of the plugin. It maps HDR brightness values into a selected output display range. The engine is designed to preserve visual detail while reducing clipped highlights, crushed shadows, and inconsistent brightness.
+
+\subsubsection{Processing Behavior}
+The Tone Mapping Engine combines three sources of input: luminance analysis data, HDR metadata, and user-selected parameters. Based on those inputs, the engine applies tone mapping adjustments such as exposure compensation, highlight roll-off, shadow recovery, contrast shaping, and saturation protection.
+
+\subsection{Preset Manager}
+
+\subsubsection{Responsibilities}
+The Preset Manager stores predefined configurations that allow users to quickly apply common tone mapping styles. Planned presets include Natural, Cinematic, Broadcast Safe, and Custom. Each preset modifies internal parameter values such as contrast, peak brightness target, highlight roll-off, and saturation behavior.
+
+\subsubsection{Uses and Interactions}
+When a user selects a preset, the Preset Manager updates the parameter set used by the Tone Mapping Engine. If the user manually changes a slider after selecting a preset, the system transitions into a custom configuration state.
+
+\subsection{Preview Renderer}
+
+\subsubsection{Responsibilities}
+The Preview Renderer returns the final processed frame to DaVinci Resolve. It also supports preview comparison modes, including full processed preview, split-view preview, and side-by-side comparison. This allows users to evaluate the effect of tone mapping before exporting the video.
+
+\subsubsection{Uses and Interactions}
+The Preview Renderer receives processed image data from the Tone Mapping Engine. It then packages the output frame for the host application. If comparison mode is enabled, the renderer combines the original and processed frames into the selected preview layout.
+
+%----------------------------------------------------------------------------------
+
+\section{Data Flow}
+
+The data flow begins when DaVinci Resolve requests a processed frame from the OpenFX plugin. The plugin receives the source HDR frame and passes it through the internal processing pipeline. The frame is analyzed, tone mapped, rendered, and returned to the host application.
+
+\begin{enumerate}[leftmargin=0.35in]
+    \item DaVinci Resolve sends an HDR frame to the plugin through the OpenFX interface.
+    \item The Frame Input Handler validates and prepares the frame buffer.
+    \item The HDR Metadata Reader checks available metadata and color space information.
+    \item The Luminance Analysis Module calculates brightness statistics.
+    \item The Preset Manager provides user-selected parameter values.
+    \item The Tone Mapping Engine applies the selected tone mapping operation.
+    \item The Preview Renderer formats the final output frame.
+    \item DaVinci Resolve displays or exports the processed frame.
+\end{enumerate}
+
+The original footage remains managed by DaVinci Resolve. The plugin only processes frame data provided by the host and does not overwrite the source media file.
+
+%----------------------------------------------------------------------------------
+
+\section{User Interface}
+
+\subsection{How the System Works}
+The user interacts with the plugin through DaVinci Resolve's OpenFX controls panel. After importing HDR footage into a project, the user applies the HDR Dynamic Tone Mapping plugin to a clip. The plugin panel displays controls for enabling dynamic tone mapping, selecting an output target, choosing a preset, and manually adjusting image parameters.
+
+The intended user workflow is as follows:
+
+\begin{enumerate}[leftmargin=0.35in]
+    \item Open DaVinci Resolve and import HDR footage.
+    \item Apply the HDR Dynamic Tone Mapping OpenFX plugin to a selected clip.
+    \item Select the input color space and output target.
+    \item Choose a preset or enable dynamic tone mapping.
+    \item Adjust exposure, highlight roll-off, shadow recovery, contrast, and saturation protection as needed.
+    \item Use preview comparison mode to compare the original HDR input with the processed output.
+    \item Export the corrected video using the desired project settings.
+\end{enumerate}
+
+\subsection{Plugin Control Panel}
+The plugin control panel is designed to support both simple and advanced workflows. Beginner users can select a preset and output target, while advanced users can manually adjust individual tone mapping controls.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{5cm}|p{9cm}|}
+\hline
+\textbf{Control} & \textbf{Purpose} \\
+\hline
+Enable Dynamic Tone Mapping & Turns automatic tone mapping on or off. \\
+\hline
+Input Color Space & Allows the user to identify the color space of the source footage, such as Rec.709, Rec.2020, or P3-D65. \\
+\hline
+Output Target & Allows the user to select SDR, HDR10, or a custom display target. \\
+\hline
+Peak Brightness Target & Defines the target brightness range for the processed output. \\
+\hline
+Exposure & Adjusts the overall brightness of the processed image. \\
+\hline
+Highlight Roll-Off & Controls how bright highlights are compressed to avoid clipping. \\
+\hline
+Shadow Recovery & Adjusts darker regions to preserve shadow detail. \\
+\hline
+Contrast & Controls the separation between bright and dark regions. \\
+\hline
+Saturation Protection & Reduces oversaturation that may occur during luminance compression. \\
+\hline
+Preset Selection & Allows the user to choose Natural, Cinematic, Broadcast Safe, or Custom. \\
+\hline
+Preview Mode & Allows the user to view full preview, split view, or side-by-side comparison. \\
+\hline
+Reset Settings & Restores the plugin to default values. \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Database Design}
+This plugin does not require a traditional database. The system is designed to run locally inside DaVinci Resolve and process frames through the OpenFX interface. Since no user accounts, uploaded media storage, or cloud synchronization are required, a database is unnecessary for the core design.
+
+For future versions, preset configurations could be stored locally using configuration files or project-level plugin settings. These stored settings would allow users to save and reuse custom tone mapping profiles without introducing a remote database or external data dependency.
+
+%----------------------------------------------------------------------------------
+
+\section{Error Handling and Fallback Behavior}
+
+The plugin is designed to fail safely. If an unsupported input format, missing metadata, or invalid preset configuration is detected, the system should avoid producing corrupted output. The plugin should either apply a default tone mapping profile or return the original frame with a warning message.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{5cm}|p{9cm}|}
+\hline
+\textbf{Error Case} & \textbf{Expected System Response} \\
+\hline
+Missing HDR metadata & Estimate luminance from frame data and apply default HDR handling. \\
+\hline
+Unsupported color space & Display a warning and fall back to Rec.709 or user-selected input settings. \\
+\hline
+Invalid output target & Use SDR 100-nit default output behavior. \\
+\hline
+Preset configuration failure & Revert to the Natural preset. \\
+\hline
+Frame processing error & Return the original frame and notify the user. \\
+\hline
+Preview mode error & Disable comparison mode and show the processed frame only. \\
+\hline
+\end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------------------
+
+\section{Dependencies and Development Tools}
+
+The project is designed around a professional software engineering workflow. The following tools and technologies are planned for the project:
+
+\begin{itemize}[leftmargin=0.35in]
+    \item \textbf{DaVinci Resolve:} Host video editing and color correction application.
+    \item \textbf{OpenFX:} Plugin framework used to integrate the effect into compatible host applications.
+    \item \textbf{C++:} Planned implementation language for performance-focused plugin logic.
+    \item \textbf{Docker:} Used to define mock build, documentation, and testing environments.
+    \item \textbf{GitHub:} Used for repository hosting, document versioning, branches, pull requests, and collaboration.
+    \item \textbf{Jira:} Used for sprint planning, task assignment, and project tracking.
+    \item \textbf{TestRail:} Used to document test cases and test runs for project snapshots.
+    \item \textbf{LaTeX:} Used to create formal project documentation.
+\end{itemize}
+
+%----------------------------------------------------------------------------------
+
+\section{Testing Considerations}
+
+The design will be validated through TestRail test cases across the project snapshots. Testing will focus on whether the planned system behaves according to its requirements and whether the user-facing controls support the intended editing workflow.
+
+Planned test categories include:
+
+\begin{itemize}[leftmargin=0.35in]
+    \item HDR input handling tests.
+    \item Luminance analysis behavior tests.
+    \item Dynamic tone mapping enable and disable tests.
+    \item Preset selection tests.
+    \item Manual control adjustment tests.
+    \item Preview comparison tests.
+    \item Error handling and fallback tests.
+    \item Documentation and user workflow verification.
+\end{itemize}
+
+%----------------------------------------------------------------------------------
+
+\section{Security, Privacy, and Ethical Design Considerations}
+
+The plugin is designed to process video frames locally within DaVinci Resolve. It does not require a user login, remote server, cloud upload, or persistent storage of user footage. This reduces privacy concerns because sensitive video projects remain within the user's local editing environment.
+
+The system should also avoid destructive editing. Original footage should remain unchanged, and all processing should be applied as a non-destructive effect through DaVinci Resolve's plugin pipeline. The plugin should clearly communicate visual changes through its controls and preview modes so users understand how the image is being modified.
+
+%----------------------------------------------------------------------------------
+
+\section{Future Design Improvements}
+
+Future design improvements may include real-time GPU acceleration, support for Dolby Vision metadata workflows, machine learning-based tone mapping, advanced histogram and waveform displays, batch processing tools, and user-created preset libraries. Additional versions may also support more detailed color management options for Rec.709, Rec.2020, P3-D65, HDR10, and custom display targets.
+
+%----------------------------------------------------------------------------------
+
+\section*{Glossary}
+\addcontentsline{toc}{section}{Glossary}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|c|p{10cm}|}
+\hline
+\textbf{Acronym / Term} & \textbf{Definition} \\
+\hline
+SDD & Software Design Document \\
+\hline
+SRS & Software Requirements Specification \\
+\hline
+UI & User Interface \\
+\hline
+HDR & High Dynamic Range; video with a wider brightness and color range than SDR. \\
+\hline
+SDR & Standard Dynamic Range; traditional display brightness and color range. \\
+\hline
+OpenFX & Open Effects plugin standard used by compatible visual effects and editing host applications. \\
+\hline
+DaVinci Resolve & Professional video editing, color correction, visual effects, and post-production software. \\
+\hline
+Tone Mapping & The process of converting high dynamic range image values into a smaller display range while preserving visual detail. \\
+\hline
+Luminance & The brightness value of an image, frame, or pixel region. \\
+\hline
+Nits & A unit used to measure display brightness. \\
+\hline
+Rec.709 & Common SDR color space standard. \\
+\hline
+Rec.2020 & Wide-gamut color space often associated with HDR workflows. \\
+\hline
+LUT & Look-Up Table used for image or color transformation. \\
+\hline
+\end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------------------
+
+\section*{References}
+\addcontentsline{toc}{section}{References}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|p{6cm}|p{10cm}|}
+\hline
+\textbf{Reference Name} & \textbf{Source} \\
+\hline
+OpenFX Documentation & \url{https://openeffects.org/} \\
+\hline
+Blackmagic Design DaVinci Resolve & \url{https://www.blackmagicdesign.com/products/davinciresolve} \\
+\hline
+DaVinci Resolve Reference Manual & Blackmagic Design official documentation \\
+\hline
+HDR and Color Management Research & General HDR video workflow and tone mapping references \\
+\hline
+CS3338 Final Project Assignment & Course project documentation and requirements \\
+\hline
+\end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------------------
+
+\end{document}

@@ -1,0 +1,380 @@
+\documentclass{article}
+\setlength{\headheight}{14.5pt}
+\setlength{\headheight}{14.5pt}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{longtable}
+
+\geometry{a4paper, margin=1in}
+
+\title{HDR Imagery Dynamic Tone Mapping \\ OpenFX Plugin for DaVinci Resolve \\ Design Specification}
+\author{Group 4}
+\date{May 2026}
+
+\pagestyle{fancy}
+\fancyhead[L]{HDR Dynamic Tone Mapping Design Spec}
+\fancyhead[C]{}
+\fancyhead[R]{Page \thepage}
+
+\begin{document}
+
+\begin{titlepage}
+\maketitle
+\thispagestyle{empty}
+\end{titlepage}
+
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+
+This Design Specification provides a concise breakdown of the major parts, modules, tools, and components planned for the \textit{HDR Imagery Dynamic Tone Mapping: OpenFX Plugin for DaVinci Resolve} project. It expands on the Software Design Document (SDD) by describing how each planned part of the plugin is organized, what each component is responsible for, and how the user interacts with the system inside the DaVinci Resolve workflow.
+
+% ----------------------------------------------------------
+\section{System Parts and Modules}
+
+\subsection{OpenFX Host Integration Module (OHIM)}
+
+\subsubsection*{Purpose}
+The OpenFX Host Integration Module manages communication between DaVinci Resolve and the HDR Dynamic Tone Mapping plugin. This module allows the plugin to be loaded as an OpenFX effect, receive image frame data from the host application, expose user-adjustable parameters, and return the processed frame back to DaVinci Resolve for preview and export.
+
+\subsubsection*{Components / Tools Used}
+\begin{itemize}
+    \item OpenFX plugin framework
+    \item DaVinci Resolve host application
+    \item Plugin parameter registration system
+    \item Frame request and render callback structure
+\end{itemize}
+
+\subsubsection*{Inputs and Outputs}
+\begin{itemize}
+    \item \textbf{Inputs:} HDR video frames, timeline context, user-selected plugin parameters
+    \item \textbf{Outputs:} processed video frames, parameter updates, preview-ready image data
+\end{itemize}
+
+
+\subsection{Frame Input Handler (FIH)}
+
+\subsubsection*{Purpose}
+The Frame Input Handler receives source frames from DaVinci Resolve and prepares them for analysis and processing. It is responsible for preserving the original image data, identifying the expected color format, and passing frame information to the luminance analysis and tone mapping modules.
+
+\subsubsection*{Components / Tools Used}
+\begin{itemize}
+    \item Frame buffer input handler
+    \item Pixel format validation
+    \item Color space identification logic
+    \item HDR metadata access, when available
+\end{itemize}
+
+\subsubsection*{Inputs and Outputs}
+\begin{itemize}
+    \item \textbf{Inputs:} raw HDR frame data from DaVinci Resolve
+    \item \textbf{Outputs:} validated frame data, detected color space information, prepared image buffer
+\end{itemize}
+
+
+\subsection{HDR Metadata and Color Space Module (HMCSM)}
+
+\subsubsection*{Purpose}
+The HDR Metadata and Color Space Module identifies the technical properties of the incoming footage. This includes the input color space, expected output target, and available HDR metadata. If metadata is unavailable, the module provides fallback behavior by allowing the tone mapping system to estimate luminance characteristics directly from the frame.
+
+\subsubsection*{Components / Tools Used}
+\begin{itemize}
+    \item Color space profile definitions
+    \item Input target options such as Rec.709, Rec.2020, and P3-D65
+    \item Output target options such as SDR, HDR10, and custom output
+    \item Metadata fallback logic
+\end{itemize}
+
+\subsubsection*{Inputs and Outputs}
+\begin{itemize}
+    \item \textbf{Inputs:} frame data, project color settings, HDR metadata, user-selected output target
+    \item \textbf{Outputs:} normalized color information, output target settings, metadata warnings when needed
+\end{itemize}
+
+
+\subsection{Luminance Analysis Module (LAM)}
+
+\subsubsection*{Purpose}
+The Luminance Analysis Module evaluates the brightness characteristics of a frame or scene. It calculates values such as peak brightness, average luminance, shadow density, highlight intensity, and midtone distribution. These values are used by the tone mapping engine to produce a balanced output.
+
+\subsubsection*{Components / Tools Used}
+\begin{itemize}
+    \item Peak brightness detector
+    \item Average luminance calculator
+    \item Shadow and highlight range analyzer
+    \item Scene-adaptive brightness evaluation
+\end{itemize}
+
+\subsubsection*{Inputs and Outputs}
+\begin{itemize}
+    \item \textbf{Inputs:} validated HDR frame data from the Frame Input Handler
+    \item \textbf{Outputs:} luminance statistics, highlight range data, shadow range data, scene exposure profile
+\end{itemize}
+
+
+\subsection{Dynamic Tone Mapping Engine (DTME)}
+
+\subsubsection*{Purpose}
+The Dynamic Tone Mapping Engine is the core processing component of the plugin. It compresses high dynamic range brightness values into a target display range while attempting to preserve highlight detail, shadow detail, contrast, and the creative intent of the image. The engine combines luminance analysis results with the user's selected parameters or preset values.
+
+\subsubsection*{Components / Tools Used}
+\begin{itemize}
+    \item Tone mapping curve generator
+    \item Highlight roll-off control
+    \item Shadow recovery control
+    \item Exposure and contrast adjustment logic
+    \item Saturation protection logic
+    \item Output range mapper
+\end{itemize}
+
+\subsubsection*{Inputs and Outputs}
+\begin{itemize}
+    \item \textbf{Inputs:} luminance statistics, selected preset, manual user controls, output target
+    \item \textbf{Outputs:} tone-mapped image frame prepared for preview or export
+\end{itemize}
+
+
+\subsection{Preset Manager Module (PMM)}
+
+\subsubsection*{Purpose}
+The Preset Manager Module stores and applies predefined tone mapping configurations. Presets allow users to quickly apply common image-processing styles without manually adjusting each control. The Custom preset allows users to override default values and fine-tune the output manually.
+
+\subsubsection*{Components / Tools Used}
+\begin{itemize}
+    \item Natural preset
+    \item Cinematic preset
+    \item Broadcast Safe preset
+    \item High Contrast preset
+    \item Custom preset
+    \item Preset-to-parameter mapping table
+\end{itemize}
+
+\subsubsection*{Inputs and Outputs}
+\begin{itemize}
+    \item \textbf{Inputs:} user preset selection
+    \item \textbf{Outputs:} exposure, contrast, highlight roll-off, shadow recovery, and saturation values
+\end{itemize}
+
+
+\subsection{Preview and Comparison Module (PCM)}
+
+\subsubsection*{Purpose}
+The Preview and Comparison Module controls how users view the processed result inside DaVinci Resolve. It supports full preview and comparison modes so that editors can evaluate the original HDR input against the tone-mapped output before applying final changes.
+
+\subsubsection*{Components / Tools Used}
+\begin{itemize}
+    \item Full preview mode
+    \item Split-view comparison mode
+    \item Side-by-side comparison mode
+    \item Original input preview
+    \item Processed output preview
+\end{itemize}
+
+\subsubsection*{Inputs and Outputs}
+\begin{itemize}
+    \item \textbf{Inputs:} original frame, processed frame, selected preview mode
+    \item \textbf{Outputs:} preview frame displayed in DaVinci Resolve
+\end{itemize}
+
+
+\subsection{Error Handling and Validation Module (EHVM)}
+
+\subsubsection*{Purpose}
+The Error Handling and Validation Module manages invalid settings, unsupported inputs, missing HDR metadata, and processing failures. The plugin is designed to fail safely by warning the user and returning a usable image rather than producing corrupted output.
+
+\subsubsection*{Components / Tools Used}
+\begin{itemize}
+    \item Unsupported format warnings
+    \item Missing metadata fallback behavior
+    \item Default SDR output target selection
+    \item Invalid preset recovery
+    \item Original-frame fallback behavior
+\end{itemize}
+
+\subsubsection*{Inputs and Outputs}
+\begin{itemize}
+    \item \textbf{Inputs:} system errors, invalid user settings, unsupported format conditions
+    \item \textbf{Outputs:} warning messages, default settings, fallback preview frame
+\end{itemize}
+
+% ----------------------------------------------------------
+\section{Directory Structure}
+
+The project repository is organized to support documentation, planning, testing, and mock development artifacts. Since this project focuses on software engineering documentation and workflow, the directory structure separates design documents, requirements, user documentation, testing artifacts, and mock plugin resources.
+
+\subsection{Root Directory}
+The root directory contains the main project README, Docker configuration, and top-level folders for documentation and mock plugin resources.
+
+\begin{itemize}
+    \item \texttt{README.md} -- Provides the project overview, Jira link, objectives, tools used, and repository guide.
+    \item \texttt{docker-compose.yml} -- Defines the planned development, documentation, and testing environments.
+    \item \texttt{docs/} -- Stores all project documentation.
+    \item \texttt{mock\_plugin/} -- Represents the planned source location for future OpenFX plugin implementation.
+    \item \texttt{jira/} -- Stores sprint planning summaries and task breakdowns.
+\end{itemize}
+
+\subsection{Documentation Directory}
+The \texttt{docs/} directory contains the major documents required for the project.
+
+\begin{itemize}
+    \item \texttt{Software\_Design\_Document/} -- Contains SDD versions for each snapshot.
+    \item \texttt{Software\_Requirement\_Specification/} -- Contains SRS versions for each snapshot.
+    \item \texttt{Design\_Specification/} -- Contains this design specification document.
+    \item \texttt{User\_Manual/} -- Contains the user manual and usage explanation.
+    \item \texttt{Snapshot\_Objectives/} -- Contains objective and reflection documents for each snapshot.
+    \item \texttt{TestRail\_Documents/} -- Contains TestRail test cases and test run summaries.
+    \item \texttt{Workflow\_Diagram/} -- Contains the high-level plugin workflow diagram.
+\end{itemize}
+
+\subsection{Mock Plugin Directory}
+The \texttt{mock\_plugin/} directory represents where implementation files would be stored in a future development phase. It may include placeholder files, planned module descriptions, and notes about how the OpenFX plugin would eventually be structured.
+
+% ----------------------------------------------------------
+\section{Tools and Technologies}
+
+This section provides a concise breakdown of the tools and technologies used or planned for the project.
+
+\subsection{DaVinci Resolve}
+DaVinci Resolve is the target host application for the plugin. The plugin is designed to fit into the existing DaVinci Resolve editing and color correction workflow as an OpenFX effect.
+
+\subsection{OpenFX Plugin Framework}
+OpenFX is the plugin framework used to connect the HDR tone mapping tool to DaVinci Resolve. It defines how the host application loads the plugin, sends frame data, exposes parameters, and receives processed output.
+
+\subsection{C++}
+C++ is the planned implementation language for performance-critical plugin development. Image processing operations such as luminance analysis and tone mapping would require efficient frame-level computation.
+
+\subsection{Docker}
+Docker is used to define a consistent mock development environment. The Docker Compose file describes planned services such as a plugin build environment, LaTeX documentation builder, and mock testing environment.
+
+\subsection{LaTeX}
+LaTeX is used to write and format formal project documents such as the SDD, SRS, Design Specification, Snapshot Objectives, and User Manual.
+
+\subsection{GitHub}
+GitHub is used for version control, document storage, branch management, pull requests, and project collaboration.
+
+\subsection{Jira}
+Jira is used for sprint planning, task assignment, bug tracking, and progress documentation across each project snapshot.
+
+\subsection{TestRail}
+TestRail is used to organize test cases and test run reports for snapshot checkpoints. TestRail cases are used to verify planned behavior such as tone mapping controls, preset selection, preview modes, and error handling.
+
+% ----------------------------------------------------------
+\section{User Interface Summary}
+
+The plugin user interface is designed to appear as a parameter panel inside DaVinci Resolve after the user applies the OpenFX effect to a clip. The interface is organized so that basic users can quickly select a preset, while advanced users can fine-tune individual tone mapping controls.
+
+\subsection{Main Plugin Panel}
+The main plugin panel contains the primary controls for enabling and configuring tone mapping.
+
+\begin{itemize}
+    \item \textbf{Enable Dynamic Tone Mapping:} Turns the tone mapping process on or off.
+    \item \textbf{Input Color Space:} Allows the user to select or confirm the input color space.
+    \item \textbf{Output Target:} Allows the user to choose SDR, HDR10, or a custom display target.
+    \item \textbf{Preset:} Allows the user to select Natural, Cinematic, Broadcast Safe, High Contrast, or Custom.
+\end{itemize}
+
+\subsection{Tone Mapping Controls}
+The tone mapping controls allow users to manually adjust the image after selecting a preset or enabling dynamic mapping.
+
+\begin{itemize}
+    \item \textbf{Exposure:} Adjusts overall image brightness.
+    \item \textbf{Highlight Roll-Off:} Controls how bright highlights are compressed.
+    \item \textbf{Shadow Recovery:} Restores detail in darker areas of the image.
+    \item \textbf{Contrast:} Adjusts separation between light and dark regions.
+    \item \textbf{Saturation Protection:} Reduces oversaturation caused by brightness compression.
+    \item \textbf{Peak Brightness Target:} Defines the intended brightness range for the output display.
+\end{itemize}
+
+\subsection{Preview Controls}
+Preview controls allow users to compare the original HDR image with the processed tone-mapped output.
+
+\begin{itemize}
+    \item \textbf{Full Preview:} Displays only the processed output.
+    \item \textbf{Split View:} Displays the original and processed result in one frame.
+    \item \textbf{Side-by-Side:} Displays the original and processed images next to each other.
+    \item \textbf{Reset Settings:} Restores plugin controls to their default state.
+\end{itemize}
+
+% ----------------------------------------------------------
+\section{Processing Workflow}
+
+The processing workflow describes how frame data moves through the plugin.
+
+\begin{enumerate}
+    \item The user imports HDR footage into DaVinci Resolve.
+    \item The user applies the HDR Dynamic Tone Mapping OpenFX plugin to a clip.
+    \item DaVinci Resolve sends the requested frame to the plugin through the OpenFX interface.
+    \item The Frame Input Handler validates the frame and identifies the expected format.
+    \item The HDR Metadata and Color Space Module checks color space and metadata information.
+    \item The Luminance Analysis Module calculates brightness and contrast statistics.
+    \item The Dynamic Tone Mapping Engine applies the selected tone mapping curve and user controls.
+    \item The Preview and Comparison Module prepares the processed frame for display.
+    \item DaVinci Resolve displays the processed output to the user.
+    \item The user adjusts settings or exports the final corrected video.
+\end{enumerate}
+
+% ----------------------------------------------------------
+\section{Preset Behavior Summary}
+
+\begin{longtable}{|p{1.2in}|p{4.6in}|}
+\hline
+\textbf{Preset} & \textbf{Behavior} \\
+\hline
+Natural & Produces a balanced tone mapping result intended to preserve a realistic image with moderate highlight compression and shadow recovery. \\
+\hline
+Cinematic & Increases contrast and applies stronger highlight roll-off for a more stylized video look. \\
+\hline
+Broadcast Safe & Prioritizes output values that are safer for SDR delivery and avoids excessive brightness or saturation. \\
+\hline
+High Contrast & Produces stronger separation between shadows and highlights while maintaining controlled peak brightness. \\
+\hline
+Custom & Allows the user to manually control all available tone mapping settings. \\
+\hline
+\end{longtable}
+
+% ----------------------------------------------------------
+\section{Error Handling Summary}
+
+\begin{longtable}{|p{2.1in}|p{3.7in}|}
+\hline
+\textbf{Condition} & \textbf{System Response} \\
+\hline
+Unsupported input color space & Display a warning and apply a default color profile. \\
+\hline
+Missing HDR metadata & Estimate brightness values directly from the frame data. \\
+\hline
+Invalid preset configuration & Revert to the Natural preset and notify the user. \\
+\hline
+Frame processing failure & Return the original frame to avoid corrupted output. \\
+\hline
+No output target selected & Default to SDR output targeting. \\
+\hline
+Extreme highlight clipping detected & Apply stronger highlight roll-off and display a warning if needed. \\
+\hline
+\end{longtable}
+
+% ----------------------------------------------------------
+\section{Testing Considerations}
+
+The design will be verified through TestRail test cases that validate the major parts of the plugin workflow. Testing will focus on whether the planned system behavior matches the requirements described in the Software Requirements Specification.
+
+\begin{itemize}
+    \item Verify that the plugin can be applied to HDR footage inside DaVinci Resolve.
+    \item Verify that users can enable and disable dynamic tone mapping.
+    \item Verify that preset selection updates tone mapping parameters.
+    \item Verify that manual controls adjust the processed image as expected.
+    \item Verify that preview comparison modes display the correct output.
+    \item Verify that unsupported inputs trigger safe warning behavior.
+    \item Verify that missing HDR metadata does not prevent frame processing.
+\end{itemize}
+
+% ----------------------------------------------------------
+\section{Future Design Improvements}
+
+Future versions of the plugin may include GPU acceleration, real-time histogram displays, Dolby Vision metadata support, advanced color space conversion, batch processing support, machine learning-based tone mapping, and shared preset libraries for collaborative post-production workflows.
+
+\end{document}
