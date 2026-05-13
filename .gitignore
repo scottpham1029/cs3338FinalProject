@@ -20,5 +20,11 @@ docs/software_design_document/SDD_v*.docx
 **/README.md
 !/README.md
 
+#ignore dockeer txt
+docker-compose.txt
+
+#ignore jira folder for now
+jira/
+
 #macOS-specific commands to ignore system mng file
 **/.DS_Store
