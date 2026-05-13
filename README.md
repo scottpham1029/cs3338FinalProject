@@ -9,15 +9,45 @@ the 100-nit SDR range while preserving details.
 
 Project Objective
 -----------------
-Main goal of HDR Imagery Dynamic Tone Mapping is to....
+The objective of HDR Imagery Dynamic Tone Mapping is to design and develop 
+an OpenFX plugin for DaVinci Resolve that provides dynamic tone mapping 
+for HDR footage. The plugin is intended to analyze image luminance, 
+preserve highlight and shadow detail, and produce a visually balanced 
+output for different display targets.
+
+The project focuses on creating a structured video-processing workflow 
+that allows editors to manage HDR content more efficiently. By integrating 
+directly into DaVinci Resolve through the OpenFX plugin framework, 
+the software aims to provide a practical tool that fits into an 
+existing post-production pipeline.
 
 
 Why This Project Is Needed
 --------------------------
+HDR footage contains a wider luminance and color range than many standard 
+displays can accurately reproduce. Without proper tone mapping, important 
+image details can be lost due to clipped highlights, crushed shadows, 
+or inconsistent brightness across scenes.
+
+This project addresses the need for a more efficient and consistent 
+HDR correction workflow. Instead of relying entirely on manual color 
+adjustments, the plugin provides automated tone mapping support 
+while still allowing users to fine-tune the image based 
+on creative or technical requirements.
 
 Features
 --------
+The plugin will include dynamic tone mapping capabilities that adjust 
+image brightness and contrast based on frame or scene luminance data. 
+Core controls will include exposure adjustment, highlight roll-off, 
+shadow recovery, contrast, saturation protection, and output 
+display targeting.
 
+Additional features will include selectable presets such as Natural, 
+Cinematic, Broadcast Safe, and Custom. The plugin will also provide 
+preview comparison modes, allowing users to compare the original 
+HDR input against the processed output before applying 
+changes to the final video.
 
 Development Status
 ------------------
@@ -41,6 +71,11 @@ Jira Link: ---placeholder---
 
 Team Members
 ------------
+Alejandro Lopez
+Brian Fuentes
+Joshua Padilla
+Ludwig Vincent
+Scott Pham
 
 
 
