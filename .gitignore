@@ -1,27 +1,24 @@
-#ignore all logs in specified location
-src/logs/*.log
+# Logs
+*.log
+src/logs/
 
-#match any characters that has - in it within root
-*-*.txt
-
-#ignore styles.css located in src folders
-src/styles.css
-
-#ignore all srs versions except final within srs folder
-docs/software_requirement_specification/SRS_v*.docx
-
-#ignore all sdd versions except final within sdd folder
-docs/software_design_document/SDD_v*.docx
-
-#ignore all readme except one in root
-**/README.md
-!/README.md
-
-#ignore dockeer txt
-docker-compose.txt
-
-#ignore jira folder for now
-jira/
-
-#macOS-specific commands to ignore system mng file
+# macOS system files
+.DS_Store
 **/.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+~$*
+
+# LaTeX build files
+*.aux
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Old Docker draft file
+docker-compose.txt
