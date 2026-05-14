@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  plugin-build-env:
+    image: gcc:latest
+    container_name: hdr_ofx_plugin_build_env
+    volumes:
+      - ./plugin:/workspace
+    working_dir: /workspace
+    command: bash
+    environment:
+      - PROJECT_NAME=HDR_Dynamic_Tone_Mapping_OpenFX
+      - TARGET_HOST=DaVinci_Resolve
+
+  latex-doc-builder:
+    image: texlive/texlive:latest
+    container_name: hdr_latex_doc_builder
+    volumes:
+      - ./docs:/docs
+    working_dir: /docs
+    command: bash
+
+  mock-testing-env:
+    image: python:3.11
+    container_name: hdr_mock_testing_env
+    volumes:
+      - ./tests:/tests
+    working_dir: /tests
+    command: bash
+    environment:
+      - TEST_SCOPE=Mock_TestRail_Validation
+
+  documentation-server:
+    image: nginx:alpine
+    container_name: hdr_documentation_server
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docs:/usr/share/nginx/html:ro
