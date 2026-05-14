@@ -4,8 +4,8 @@
 \usepackage{fancyhdr}
 \usepackage{graphicx}
 \usepackage{titling}
-\usepackage{hyperref}
 \usepackage[hyphens]{url}
+\usepackage[hidelinks]{hyperref}
 \usepackage{array}
 \usepackage{longtable}
 \usepackage{enumitem}
@@ -14,6 +14,9 @@
 
 \geometry{a4paper, margin=1in}
 \Urlmuskip=0mu plus 1mu
+\makeatletter
+\g@addto@macro\UrlBreaks{\do\/\do-\do\_\do\.\do\?\do\&\do\=\do\#\do\%}
+\makeatother
 
 \title{HDR Imagery Dynamic Tone Mapping \\ OpenFX Plugin for DaVinci Resolve \\ Software Design Document}
 \author{Group 4}
@@ -26,11 +29,12 @@
 \fancyhead[C]{}
 \fancyhead[R]{Page \thepage}
 
-\renewcommand{\UrlFont}{\ttfamily\underline}
+\renewcommand{\UrlFont}{\ttfamily}
 
 %----------------------------------------------------------------------------------
 
 \begin{document}
+\pagenumbering{roman}
 
 \begin{titlepage}
 \maketitle
@@ -46,6 +50,7 @@
 \thispagestyle{empty}
 \tableofcontents
 \newpage
+\pagenumbering{arabic}
 
 %----------------------------------------------------------------------------------
 
@@ -414,7 +419,7 @@ LUT & Look-Up Table used for image or color transformation. \\
 \begin{table}[H]
 \centering
 \renewcommand{\arraystretch}{1.6}
-\begin{tabular}{|p{6cm}|p{10cm}|}
+\begin{tabular}{|p{5cm}|>{\raggedright\arraybackslash}p{9cm}|}
 \hline
 \textbf{Reference Name} & \textbf{Source} \\
 \hline

@@ -4,15 +4,17 @@
 \usepackage{fancyhdr}
 \usepackage{graphicx}
 \usepackage{titling}
-\usepackage{hyperref}
 \usepackage[hyphens]{url}
+\usepackage[hidelinks]{hyperref}
 \usepackage{array}
 \usepackage{longtable}
 
 %----------------------------------------------------------------------------------
 
 \geometry{a4paper, margin=1in}
+\setlength{\headheight}{15pt}
 \Urlmuskip=0mu plus 1mu
+\def\UrlBreaks{\do\/\do-\do_\do.\do?\do&\do=\do\#}
 
 \title{HDR Imagery Dynamic Tone Mapping \\ OpenFX Plugin for DaVinci Resolve \\ Software Requirement Specification}
 \author{Group 4}
@@ -24,11 +26,12 @@
 \fancyhead[L]{HDR Dynamic Tone Mapping SRS}
 \fancyhead[C]{}
 \fancyhead[R]{Page \thepage}
-\renewcommand{\UrlFont}{\ttfamily\underline}
+\renewcommand{\UrlFont}{\ttfamily}
 
 %----------------------------------------------------------------------------------
 
 \begin{document}
+\hypersetup{pageanchor=false}
 
 \begin{titlepage}
 \maketitle
@@ -41,9 +44,12 @@
 \end{center}
 \end{titlepage}
 
+\pagenumbering{roman}
 \thispagestyle{empty}
 \tableofcontents
 \newpage
+\hypersetup{pageanchor=true}
+\pagenumbering{arabic}
 
 %----------------------------------------------------------------------------------
 
@@ -356,7 +362,7 @@ Rec.2020 & A wide color space commonly associated with HDR video workflows. \\
 \begin{table}[H]
 \centering
 \renewcommand{\arraystretch}{1.6}
-\begin{tabular}{|p{6cm}|p{11cm}|}
+\begin{tabular}{|p{6.2cm}|p{8.0cm}|}
 \hline
 \textbf{Reference Name} & \textbf{Source} \\
 \hline
