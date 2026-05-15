@@ -66,7 +66,7 @@ Project Management
 ------------------
 Project planning, task assignments and progressive tracking were managed using Jira
 
-Jira Link: ---placeholder---
+Jira Link: https://calstatela-cs3338-group4.atlassian.net/jira/software/projects/HDTMP/boards/166
 
 
 Team Members
